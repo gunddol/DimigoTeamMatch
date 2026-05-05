@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>팀스파크 · 설문 기반 팀 매칭</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero card">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="icon-wrap subtle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M17 20h5v-2a4 4 0 0 0-4-4h-1"></path>
+                <path d="M7 20H2v-2a4 4 0 0 1 4-4h1"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+                <path d="M12 14a4 4 0 0 0-4 4v2h8v-2a4 4 0 0 0-4-4Z"></path>
+              </svg>
+            </span>
+            수업 팀빌딩 도구
+          </div>
+          <h1>팀 빌딩</h1>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="left-column">
+          <section class="card section-card">
+            <div class="section-head">
+              <div>
+                <h2>1. 데이터 불러오기</h2>
+                <p>구글 폼 응답 시트 URL을 입력하고 <strong>URL로 불러오기</strong>를 눌러주세요.</p>
+              </div>
+              <span class="badge">필수</span>
+            </div>
+
+            <div class="url-input-wrap">
+              <label for="sheetUrl">구글 스프레드시트 URL</label>
+              <div class="url-row">
+                <input
+                  id="sheetUrl"
+                  type="text"
+                  placeholder="예: https://docs.google.com/spreadsheets/d/.../edit?gid=0"
+                />
+                <button id="loadSheetBtn" class="btn btn-dark" type="button">URL로 불러오기</button>
+              </div>
+              <p class="helper-text">
+                불러온 뒤, 아래에서 <strong>팀 매칭 시작</strong>을 눌러 진행하세요.
+              </p>
+            </div>
+
+            <div class="status-box" id="statusBox">대기 중입니다. 구글 시트 URL을 입력하고 불러와 주세요.</div>
+          </section>
+
+          <section class="card section-card">
+            <div class="section-head">
+              <div>
+                <h2>2. 응답 데이터</h2>
+                <p>실제 매칭에 사용되는 학생 목록입니다.</p>
+              </div>
+              <div class="toolbar-inline">
+                <button id="startMatchBtn" class="btn btn-primary" type="button" disabled>팀 매칭 시작</button>
+              </div>
+            </div>
+
+            <div class="summary-grid" id="summaryGrid">
+              <div class="summary-card">
+                <span>전체 학생 수</span>
+                <strong id="totalStudents">0</strong>
+              </div>
+              <div class="summary-card">
+                <span>Design</span>
+                <strong id="designCount">0</strong>
+              </div>
+              <div class="summary-card">
+                <span>Engineering</span>
+                <strong id="engineeringCount">0</strong>
+              </div>
+              <div class="summary-card">
+                <span>상관없음</span>
+                <strong id="anyCount">0</strong>
+              </div>
+              <div class="summary-card">
+                <span>미정 주제</span>
+                <strong id="undecidedCount">0</strong>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>이름</th>
+                    <th>학과</th>
+                    <th>희망 역할</th>
+                    <th>희망 주제</th>
+                  </tr>
+                </thead>
+                <tbody id="studentsTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+      </main>
+
+      <section class="card section-card results-stage" aria-label="팀 매칭 결과">
+        <div class="results-head">
+          <div>
+            <div class="eyebrow">팀 매칭 결과</div>
+            <h2 class="results-title">내 팀을 찾아보세요</h2>
+          </div>
+          <button id="downloadBtn" class="btn btn-secondary" type="button" disabled>CSV 다운로드</button>
+        </div>
+
+        <div id="resultMeta" class="result-meta empty">아직 팀이 생성되지 않았습니다.</div>
+        <div id="teamsContainer" class="teams-container teams-container--stage"></div>
+
+        <div class="divider"></div>
+
+        <div class="results-subhead">
+          <h3>수동 조정 필요 학생</h3>
+          <p>인원이 홀수이거나 점수상 불리한 경우 따로 표시합니다.</p>
+        </div>
+        <div id="unmatchedContainer" class="unmatched-container empty">현재 대기 학생이 없습니다.</div>
+      </section>
+    </div>
+
+    <div id="matchScreen" class="match-screen" hidden>
+      <div class="match-backdrop" data-match-dismiss="true"></div>
+      <div class="match-panel card" role="dialog" aria-modal="true" aria-labelledby="matchTitle">
+        <div class="match-top">
+          <div>
+            <div class="eyebrow">
+              <span class="icon-wrap subtle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3v3"></path>
+                  <path d="M12 18v3"></path>
+                  <path d="M3 12h3"></path>
+                  <path d="M18 12h3"></path>
+                  <path d="m5.6 5.6 2.1 2.1"></path>
+                  <path d="m16.3 16.3 2.1 2.1"></path>
+                  <path d="m5.6 18.4 2.1-2.1"></path>
+                  <path d="m16.3 7.7 2.1-2.1"></path>
+                  <circle cx="12" cy="12" r="4.2"></circle>
+                </svg>
+              </span>
+              매칭 쇼타임
+            </div>
+            <h2 id="matchTitle" class="match-title">팀을 하나씩 뽑아볼게요</h2>
+            <p id="matchSubtitle" class="match-subtitle">준비되면 시작을 눌러주세요.</p>
+          </div>
+
+          <div class="match-actions">
+            <button id="matchCloseBtn" class="btn btn-secondary" type="button">닫기</button>
+          </div>
+        </div>
+
+        <div class="match-progress" aria-hidden="true">
+          <div id="matchProgressBar" class="match-progress-bar" style="width: 0%"></div>
+        </div>
+
+        <div class="match-controls">
+          <button id="matchRunBtn" class="btn btn-primary" type="button" disabled>시작</button>
+          <button id="matchSkipBtn" class="btn btn-secondary" type="button" hidden>빠르게 끝내기</button>
+        </div>
+
+        <div id="matchTeams" class="match-teams"></div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
